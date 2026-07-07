@@ -1,0 +1,8 @@
+*.xlsm
+*.xlsx
+*.xlsb
+*.tmp
+*.bak
+~$*
+Thumbs.db
+Desktop.ini
