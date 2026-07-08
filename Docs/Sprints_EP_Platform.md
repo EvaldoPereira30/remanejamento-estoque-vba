@@ -495,3 +495,105 @@ Os registros `Sem loja destino` nao participam do Remanejamento Final.
 Os registros `Sem loja destino` nao sao exportados no TXT.
 
 Esses registros servem apenas para auditoria, rastreabilidade e futura composicao da `Sugestao_Remanejamento`.
+
+## Sprint QA-1 - Suite de Validacao do Motor
+
+### Objetivo
+
+Criar uma suite de validacao para proteger o comportamento atual do Motor de Distribuicao.
+
+A Sprint QA-1 nao implementa novas funcionalidades, nao altera regras de negocio e nao modifica o comportamento do motor. O objetivo e garantir que futuras alteracoes no codigo nao mudem o comportamento ja validado.
+
+### Escopo
+
+O escopo da Sprint QA-1 contempla:
+
+- criar uma estrutura de testes em `EP_Platform/tests/`;
+- utilizar os layouts reais do projeto;
+- validar importacao dos layouts;
+- validar calculo de capacidade;
+- validar preparacao do motor;
+- validar primeira rodada;
+- validar segunda rodada;
+- validar tratamento de saldo restante;
+- validar registro `Sem loja destino`;
+- apresentar um resumo da execucao dos testes.
+
+### Arquivos criados ou alterados
+
+- `EP_Platform/tests/__init__.py`
+- `EP_Platform/tests/test_motor_distribuicao.py`
+- `Docs/Sprints_EP_Platform.md`
+
+### Validacoes implementadas
+
+Importacao:
+
+- confirma que os layouts reais sao lidos e validados;
+- confirma a quantidade de registros normalizados de estoque e excesso.
+
+Calculo de capacidade:
+
+- valida `DiasEstoqueAtual`;
+- valida `EstoqueMaximo`;
+- valida `Capacidade`;
+- valida `StatusAbsorcao`.
+
+Preparacao do motor:
+
+- confirma que a origem e localizada no estoque;
+- confirma que destinos aptos nao incluem a origem;
+- confirma que destinos aptos possuem status `Pode Absorver`;
+- confirma que a capacidade dos destinos aptos permanece disponivel;
+- confirma a ordenacao por maior `MediaF`.
+
+Primeira rodada:
+
+- considera somente lojas com estoque zero;
+- limita a quantidade enviada a no maximo 1 unidade;
+- respeita saldo restante;
+- respeita capacidade disponivel.
+
+Segunda rodada:
+
+- considera somente lojas com estoque maior que zero;
+- respeita prioridade por maior `MediaF`;
+- envia o menor valor entre saldo restante e capacidade;
+- atualiza saldo em memoria corretamente;
+- preserva valores decimais.
+
+Saldo restante:
+
+- confirma que produtos totalmente distribuidos nao geram registro;
+- confirma que produtos com saldo remanescente geram registro `Sem loja destino`;
+- confirma que o saldo registrado e igual ao saldo final do motor;
+- confirma que quantidade sugerida fica zero;
+- confirma que dias do destino, capacidade e dias apos permanecem nao aplicaveis.
+
+### Resultado esperado
+
+A execucao da suite deve apresentar um resumo semelhante a:
+
+```text
+Motor de Distribuicao
+Produtos analisados: 22
+Aprovados: 22
+Reprovados: 0
+Divergencias: 0
+Produtos totalmente distribuidos: 21
+Produtos com saldo restante: 1
+```
+
+Se nao houver divergencias, a suite apresenta:
+
+```text
+A implementacao do Motor de Distribuicao permanece compativel com as regras de negocio documentadas.
+```
+
+### Limitacoes
+
+- Nao altera o algoritmo.
+- Nao cria novas regras de negocio.
+- Nao gera remanejamento final.
+- Nao exporta TXT.
+- Usa os layouts reais do projeto como massa inicial de regressao.
