@@ -597,3 +597,75 @@ A implementacao do Motor de Distribuicao permanece compativel com as regras de n
 - Nao gera remanejamento final.
 - Nao exporta TXT.
 - Usa os layouts reais do projeto como massa inicial de regressao.
+
+## Sprint 4 - Geracao da Sugestao_Remanejamento
+
+### Objetivo
+
+Gerar a estrutura `Sugestao_Remanejamento` a partir dos resultados ja produzidos pelo Motor de Distribuicao.
+
+A Sprint 4 nao implementa regra nova, nao recalcula capacidade, nao altera estoque, nao modifica o algoritmo e nao arredonda quantidades. Ela atua apenas como camada de transformacao da memoria de calculo do motor para uma estrutura equivalente a aba `Sugestao_Remanejamento` do VBA.
+
+### Escopo
+
+O escopo da Sprint 4 contempla:
+
+- criar um gerador especifico para a `Sugestao_Remanejamento`;
+- consumir os resultados da primeira rodada;
+- consumir os resultados da segunda rodada;
+- consumir os registros de saldo remanescente `Sem loja destino`;
+- gerar uma lista padronizada de registros de sugestao;
+- exibir resumo da quantidade de registros gerados;
+- exibir os primeiros registros para conferencia.
+
+### Arquivos criados ou alterados
+
+- `EP_Platform/geradores/__init__.py`
+- `EP_Platform/geradores/gerador_sugestao.py`
+- `EP_Platform/modelos/schemas.py`
+- `EP_Platform/main.py`
+- `Docs/Sprints_EP_Platform.md`
+
+### Estrutura gerada
+
+Cada registro da `Sugestao_Remanejamento` contem:
+
+- `Origem`
+- `Produto`
+- `Descricao`
+- `Quantidade em excesso original`
+- `Destino`
+- `Dias atuais do destino`
+- `Capacidade`
+- `Quantidade sugerida`
+- `Dias apos envio`
+- `Saldo restante`
+
+### Regras implementadas
+
+- cada envio registrado pelo motor gera um registro na sugestao;
+- envios da primeira rodada sao preservados sem alteracao;
+- envios da segunda rodada sao preservados sem alteracao;
+- quantidades decimais permanecem decimais;
+- saldos remanescentes geram registros com destino `Sem loja destino`;
+- registros `Sem loja destino` preservam quantidade sugerida igual a zero;
+- campos nao aplicaveis em registros `Sem loja destino` permanecem sem valor;
+- `Dias apos envio` e derivado apenas para compor a memoria de sugestao;
+- o calculo de `Dias apos envio` nao atualiza estoque, capacidade ou saldo do motor;
+- nenhum registro produzido pelo motor e filtrado ou removido.
+
+### Limitacoes
+
+- Nao gera Remanejamento Final.
+- Nao exporta TXT.
+- Nao arredonda quantidades.
+- Nao altera o resultado produzido pelo motor.
+- Nao atualiza estoque do destino.
+- Nao recalcula capacidade.
+
+### Proximos passos
+
+- implementar a geracao do Remanejamento Final;
+- aplicar as regras futuras de arredondamento apenas no Remanejamento Final;
+- manter os registros `Sem loja destino` apenas como memoria de calculo e rastreabilidade;
+- implementar exportacao TXT em sprint posterior.

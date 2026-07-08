@@ -142,3 +142,17 @@ class SaldoRemanescente:
     dias_destino: float | None
     capacidade: float | None
     dias_apos: float | None
+
+
+@dataclass(frozen=True)
+class RegistroSugestaoRemanejamento:
+    origem: str
+    produto: str
+    descricao: str
+    quantidade_excesso_original: float
+    destino: str
+    dias_atuais_destino: float | None
+    capacidade: float | None
+    quantidade_sugerida: float
+    dias_apos_envio: float | None
+    saldo_restante: float

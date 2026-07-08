@@ -7,6 +7,7 @@ from EP_Platform.calculadoras.calculadora_capacidade import (
     calcular_capacidade_estoque,
     resumir_status_absorcao,
 )
+from EP_Platform.geradores.gerador_sugestao import gerar_sugestao_remanejamento
 from EP_Platform.importadores.importador_estoque import importar_estoque
 from EP_Platform.importadores.importador_excesso import importar_excesso
 from EP_Platform.normalizadores.normalizador_dados import (
@@ -299,12 +300,87 @@ def executar_sprint_3c(
     return produtos_totalmente_distribuidos, len(saldos_remanescentes)
 
 
+def executar_sprint_4(
+    caminho_estoque: Path,
+    caminho_excesso: Path,
+    dias_alvo: float = 90,
+) -> tuple[int, int]:
+    estoque_importado = importar_estoque(caminho_estoque)
+    excesso_importado = importar_excesso(caminho_excesso)
+
+    estoque_limpo = limpar_estoque(estoque_importado.linhas)
+    excesso_limpo = limpar_excesso(excesso_importado.linhas)
+
+    validacao_estoque = validar_estoque(estoque_limpo)
+    validacao_excesso = validar_excesso(excesso_limpo)
+    validacao = consolidar_validacoes(validacao_estoque, validacao_excesso)
+
+    if not validacao.valido:
+        print("Validacoes: ERRO")
+        for erro in validacao.erros:
+            print(f"- {erro}")
+        raise SystemExit(1)
+
+    estoque_normalizado = normalizar_estoque(estoque_limpo)
+    excesso_normalizado = normalizar_excesso(excesso_limpo)
+    estoque_calculado = calcular_capacidade_estoque(estoque_normalizado, dias_alvo)
+    preparacoes = preparar_dados_motor(estoque_calculado, excesso_normalizado)
+    resultados_primeira = executar_primeira_rodada(preparacoes)
+    resultados_segunda = executar_segunda_rodada(resultados_primeira)
+    saldos_remanescentes = registrar_saldos_remanescentes(resultados_segunda)
+    sugestoes = gerar_sugestao_remanejamento(
+        resultados_segunda,
+        saldos_remanescentes,
+    )
+
+    registros_sem_loja = [
+        sugestao
+        for sugestao in sugestoes
+        if sugestao.destino == "Sem loja destino"
+    ]
+
+    print(f"Quantidade total de registros gerados: {len(sugestoes)}")
+    print(
+        'Quantidade de registros "Sem loja destino": '
+        f"{len(registros_sem_loja)}"
+    )
+    print("Primeiros registros gerados:")
+
+    for sugestao in sugestoes[:10]:
+        print(
+            f"Origem: {sugestao.origem} | "
+            f"Produto: {sugestao.produto} | "
+            f"Destino: {sugestao.destino} | "
+            f"Quantidade sugerida: {sugestao.quantidade_sugerida:g} | "
+            f"Saldo restante: {sugestao.saldo_restante:g}"
+        )
+        print(
+            "Dias atuais destino: "
+            f"{_formatar_valor_opcional(sugestao.dias_atuais_destino)} | "
+            f"Capacidade: {_formatar_valor_opcional(sugestao.capacidade)} | "
+            "Dias apos envio: "
+            f"{_formatar_valor_opcional(sugestao.dias_apos_envio)}"
+        )
+
+    for aviso in validacao.avisos:
+        print(f"Aviso: {aviso}")
+
+    return len(sugestoes), len(registros_sem_loja)
+
+
+def _formatar_valor_opcional(valor: float | None) -> str:
+    if valor is None:
+        return "nao aplicavel"
+
+    return f"{valor:g}"
+
+
 def main() -> None:
     raiz_projeto = Path(__file__).resolve().parent.parent
     caminho_estoque = raiz_projeto / "Layout" / "Layout_Estoque.xls"
     caminho_excesso = raiz_projeto / "Layout" / "Layout_Excesso.xls"
 
-    executar_sprint_3c(caminho_estoque, caminho_excesso)
+    executar_sprint_4(caminho_estoque, caminho_excesso)
 
 
 if __name__ == "__main__":
