@@ -51,10 +51,18 @@ class RegistroEstoque:
 
 
 @dataclass(frozen=True)
+class RegistroEstoqueCalculado:
+    estoque: RegistroEstoque
+    dias_estoque_atual: float
+    estoque_maximo: float
+    capacidade: float
+    status_absorcao: str
+
+
+@dataclass(frozen=True)
 class RegistroExcesso:
     origem: str
     produto: str
     descricao: str
     qtde_excesso: float
     linha_origem: int
-

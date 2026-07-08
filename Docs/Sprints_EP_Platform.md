@@ -105,3 +105,87 @@ Execucao:
 - Criar testes automatizados comparando a massa de layout com o comportamento esperado.
 - Preparar a base para o motor de distribuicao em sprint futura.
 - Manter a regra de nao atualizar estoque de destino durante a distribuicao na primeira versao compativel.
+
+## Sprint 2A - Calculos de Capacidade
+
+### Objetivo
+
+Implementar os calculos que preparam o estoque normalizado para o futuro motor de distribuicao.
+
+A Sprint 2A calcula, para cada registro de estoque:
+
+- `DiasEstoqueAtual`;
+- `EstoqueMaximo`;
+- `Capacidade`;
+- `StatusAbsorcao`.
+
+Esta sprint nao implementa motor de distribuicao, sugestao de remanejamento, remanejamento final ou exportacao TXT.
+
+### Escopo
+
+O escopo da Sprint 2A contempla:
+
+- criar um modulo de calculo de capacidade;
+- enriquecer cada registro de estoque com os quatro indicadores calculados;
+- aplicar a regra de status de absorcao documentada;
+- exibir em terminal um resumo por status;
+- executar a validacao usando `Layout/Layout_Estoque.xls`.
+
+### Arquivos criados ou alterados
+
+- `EP_Platform/calculadoras/__init__.py`
+- `EP_Platform/calculadoras/calculadora_capacidade.py`
+- `EP_Platform/modelos/schemas.py`
+- `EP_Platform/main.py`
+- `Docs/Sprints_EP_Platform.md`
+
+### Regras implementadas
+
+Para cada registro de estoque:
+
+```text
+DiasEstoqueAtual = QtEstoqueComercial / (MediaF / 30)
+EstoqueMaximo = (MediaF / 30) * DiasAlvo
+Capacidade = max(0, EstoqueMaximo - QtEstoqueComercial)
+```
+
+Quando `MediaF <= 0`:
+
+- `DiasEstoqueAtual = 0`;
+- `EstoqueMaximo = 0`;
+- `Capacidade = 0`;
+- `StatusAbsorcao = Sem Media`.
+
+Quando `MediaF > 0` e `DiasEstoqueAtual >= DiasAlvo`:
+
+- `StatusAbsorcao = Nao Absorve`.
+
+Quando `MediaF > 0` e `DiasEstoqueAtual < DiasAlvo`:
+
+- `StatusAbsorcao = Pode Absorver`.
+
+O valor padrao de `DiasAlvo` permanece 90, conforme o comportamento documentado.
+
+### Resultado esperado em terminal
+
+A execucao de `EP_Platform/main.py` deve apresentar:
+
+- total de registros calculados;
+- quantidade com status `Pode Absorver`;
+- quantidade com status `Nao Absorve`;
+- quantidade com status `Sem Media`.
+
+### Limitacoes
+
+- Nao executa distribuicao de excesso.
+- Nao gera sugestao de remanejamento.
+- Nao gera remanejamento final.
+- Nao exporta TXT.
+- Nao atualiza estoque de destino.
+- Nao altera a regra de importacao e normalizacao da Sprint 1.
+
+### Proximos passos
+
+- Criar testes automatizados para a calculadora de capacidade.
+- Preparar o motor de distribuicao em sprint futura usando os registros de estoque calculados.
+- Preservar, na primeira versao do motor, a regra de nao atualizar estoque do destino durante a distribuicao.
