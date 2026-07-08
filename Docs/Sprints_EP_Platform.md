@@ -807,3 +807,80 @@ O exportador TXT nao acessa:
 - integrar a escolha do local de exportacao na interface da EP Platform;
 - registrar a execucao e os arquivos gerados em logs;
 - validar o consumo dos TXT pelo processo operacional definitivo.
+
+## Sprint INT-1 - API Publica do Remanejamento Engine
+
+### Objetivo
+
+Preparar o Remanejamento para ser consumido pela EP Platform como um motor reutilizavel.
+
+A Sprint INT-1 nao altera regras de negocio, nao modifica o algoritmo, nao altera testes existentes e nao integra ainda a interface da EP Platform. Ela cria uma camada publica de orquestracao para que consumidores externos chamem apenas uma funcao principal.
+
+### Escopo
+
+O escopo da Sprint INT-1 contempla:
+
+- criar o modulo publico `EP_Platform/api.py`;
+- expor a funcao `executar_remanejamento`;
+- encapsular o fluxo completo ja existente;
+- retornar um dicionario padronizado para consumo pela EP Platform;
+- criar teste automatizado especifico da API publica;
+- validar que a API nao exige chamada direta aos modulos internos.
+
+### Arquivos criados ou alterados
+
+- `EP_Platform/api.py`
+- `EP_Platform/tests/test_api_publica.py`
+- `Docs/Sprints_EP_Platform.md`
+
+### Fluxo orquestrado pela API
+
+A funcao publica executa:
+
+1. Importar Estoque.
+2. Importar Excesso.
+3. Validar arquivos.
+4. Normalizar dados.
+5. Calcular capacidade.
+6. Preparar motor.
+7. Executar primeira rodada.
+8. Executar segunda rodada.
+9. Tratar saldo sem loja destino.
+10. Gerar `Sugestao_Remanejamento`.
+11. Gerar Layout Final.
+12. Exportar TXT.
+
+### Contrato de retorno
+
+O retorno da API contem:
+
+- `sucesso`
+- `mensagem`
+- `quantidade_estoque`
+- `quantidade_excesso`
+- `quantidade_sugestao`
+- `quantidade_layout_final`
+- `quantidade_txt_gerados`
+- `arquivos_txt`
+- `produtos_com_saldo_sem_destino`
+- `divergencias`
+- `pasta_saida`
+
+### Regras preservadas
+
+- A EP Platform deve consumir apenas a API publica.
+- A EP Platform nao deve conhecer diretamente importadores, validadores, normalizadores, calculadoras, preparadores, motores internos, geradores ou exportadores.
+- O motor e os algoritmos existentes permanecem inalterados.
+- A exportacao TXT continua sendo feita a partir do Layout Final.
+
+### Validacao
+
+Foi criado um teste automatizado que chama apenas `executar_remanejamento`.
+
+O teste valida o fluxo completo com os layouts reais, incluindo quantidades importadas, sugestao, layout final, arquivos TXT gerados e produtos com saldo sem destino.
+
+### Proximos passos
+
+- integrar a API publica na EP Platform;
+- criar a tela operacional do modulo Remanejamento de Excesso;
+- manter o acoplamento da interface restrito ao contrato publico da API.
