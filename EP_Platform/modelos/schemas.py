@@ -156,3 +156,12 @@ class RegistroSugestaoRemanejamento:
     quantidade_sugerida: float
     dias_apos_envio: float | None
     saldo_restante: float
+
+
+@dataclass(frozen=True)
+class RegistroLayoutFinal:
+    destino: str
+    origem: str
+    produto: str
+    descricao: str
+    quantidade_enviar: int

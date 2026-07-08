@@ -669,3 +669,64 @@ Cada registro da `Sugestao_Remanejamento` contem:
 - aplicar as regras futuras de arredondamento apenas no Remanejamento Final;
 - manter os registros `Sem loja destino` apenas como memoria de calculo e rastreabilidade;
 - implementar exportacao TXT em sprint posterior.
+
+## Sprint 5 - Geracao do Layout Final Operacional
+
+### Objetivo
+
+Gerar o Layout Final utilizado pela operacao a partir da `Sugestao_Remanejamento`.
+
+A Sprint 5 nao implementa regra nova, nao altera o Motor de Distribuicao, nao modifica a `Sugestao_Remanejamento`, nao recalcula saldo e nao recalcula capacidade. Ela apenas transforma os dados ja produzidos pela sugestao no layout operacional equivalente ao `Remanejamento Final` do VBA.
+
+### Escopo
+
+O escopo da Sprint 5 contempla:
+
+- criar um gerador especifico para o Layout Final;
+- consumir os registros da `Sugestao_Remanejamento`;
+- remover registros com destino `Sem loja destino`;
+- remover registros cuja quantidade arredondada seja menor ou igual a zero;
+- arredondar a quantidade sugerida somente nesta etapa final;
+- gerar a estrutura operacional com os campos esperados;
+- ordenar o resultado por destino e origem;
+- exibir a quantidade de registros e os primeiros itens gerados.
+
+### Arquivos criados ou alterados
+
+- `EP_Platform/geradores/gerador_layout_final.py`
+- `EP_Platform/modelos/schemas.py`
+- `EP_Platform/main.py`
+- `Docs/Sprints_EP_Platform.md`
+
+### Estrutura gerada
+
+Cada registro do Layout Final contem exatamente:
+
+- `Destino`
+- `Origem`
+- `Produto`
+- `Descricao`
+- `Quantidade Enviar`
+
+### Regras implementadas
+
+- registros com destino `Sem loja destino` nao entram no Layout Final;
+- a quantidade sugerida e arredondada conforme o comportamento do Excel/VBA;
+- apenas registros com quantidade arredondada maior que zero entram no Layout Final;
+- a `Sugestao_Remanejamento` permanece inalterada;
+- o Motor de Distribuicao permanece inalterado;
+- saldos, capacidades e dias nao sao recalculados;
+- o resultado final e ordenado por destino crescente e origem crescente.
+
+### Limitacoes
+
+- Nao exporta TXT.
+- Nao altera a memoria de calculo da sugestao.
+- Nao altera distribuicoes ja calculadas.
+- Nao atualiza estoque do destino.
+
+### Proximos passos
+
+- implementar a exportacao TXT por filial destino;
+- validar o conteudo gerado contra o padrao operacional de importacao;
+- manter o Layout Final como fonte unica da exportacao TXT.

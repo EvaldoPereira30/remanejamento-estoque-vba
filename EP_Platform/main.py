@@ -7,6 +7,7 @@ from EP_Platform.calculadoras.calculadora_capacidade import (
     calcular_capacidade_estoque,
     resumir_status_absorcao,
 )
+from EP_Platform.geradores.gerador_layout_final import gerar_layout_final
 from EP_Platform.geradores.gerador_sugestao import gerar_sugestao_remanejamento
 from EP_Platform.importadores.importador_estoque import importar_estoque
 from EP_Platform.importadores.importador_excesso import importar_excesso
@@ -368,6 +369,58 @@ def executar_sprint_4(
     return len(sugestoes), len(registros_sem_loja)
 
 
+def executar_sprint_5(
+    caminho_estoque: Path,
+    caminho_excesso: Path,
+    dias_alvo: float = 90,
+) -> int:
+    estoque_importado = importar_estoque(caminho_estoque)
+    excesso_importado = importar_excesso(caminho_excesso)
+
+    estoque_limpo = limpar_estoque(estoque_importado.linhas)
+    excesso_limpo = limpar_excesso(excesso_importado.linhas)
+
+    validacao_estoque = validar_estoque(estoque_limpo)
+    validacao_excesso = validar_excesso(excesso_limpo)
+    validacao = consolidar_validacoes(validacao_estoque, validacao_excesso)
+
+    if not validacao.valido:
+        print("Validacoes: ERRO")
+        for erro in validacao.erros:
+            print(f"- {erro}")
+        raise SystemExit(1)
+
+    estoque_normalizado = normalizar_estoque(estoque_limpo)
+    excesso_normalizado = normalizar_excesso(excesso_limpo)
+    estoque_calculado = calcular_capacidade_estoque(estoque_normalizado, dias_alvo)
+    preparacoes = preparar_dados_motor(estoque_calculado, excesso_normalizado)
+    resultados_primeira = executar_primeira_rodada(preparacoes)
+    resultados_segunda = executar_segunda_rodada(resultados_primeira)
+    saldos_remanescentes = registrar_saldos_remanescentes(resultados_segunda)
+    sugestoes = gerar_sugestao_remanejamento(
+        resultados_segunda,
+        saldos_remanescentes,
+    )
+    layout_final = gerar_layout_final(sugestoes)
+
+    print(f"Quantidade de registros do Layout Final: {len(layout_final)}")
+    print("Primeiros registros gerados:")
+
+    for registro in layout_final[:10]:
+        print(
+            f"Destino: {registro.destino} | "
+            f"Origem: {registro.origem} | "
+            f"Produto: {registro.produto} | "
+            f"Descricao: {registro.descricao} | "
+            f"Quantidade Enviar: {registro.quantidade_enviar}"
+        )
+
+    for aviso in validacao.avisos:
+        print(f"Aviso: {aviso}")
+
+    return len(layout_final)
+
+
 def _formatar_valor_opcional(valor: float | None) -> str:
     if valor is None:
         return "nao aplicavel"
@@ -380,7 +433,7 @@ def main() -> None:
     caminho_estoque = raiz_projeto / "Layout" / "Layout_Estoque.xls"
     caminho_excesso = raiz_projeto / "Layout" / "Layout_Excesso.xls"
 
-    executar_sprint_4(caminho_estoque, caminho_excesso)
+    executar_sprint_5(caminho_estoque, caminho_excesso)
 
 
 if __name__ == "__main__":
