@@ -730,3 +730,80 @@ Cada registro do Layout Final contem exatamente:
 - implementar a exportacao TXT por filial destino;
 - validar o conteudo gerado contra o padrao operacional de importacao;
 - manter o Layout Final como fonte unica da exportacao TXT.
+
+## Sprint 6 - Exportacao TXT Operacional
+
+### Objetivo
+
+Exportar o Layout Final em arquivos TXT operacionais, mantendo exatamente o formato utilizado pelo VBA.
+
+A Sprint 6 nao implementa regra de negocio nova, nao altera o Motor de Distribuicao, nao modifica a `Sugestao_Remanejamento`, nao recalcula saldo, nao recalcula capacidade e nao altera o Layout Final. Ela apenas grava os registros finais em arquivos TXT por filial destino.
+
+### Escopo
+
+O escopo da Sprint 6 contempla:
+
+- criar um exportador especifico para arquivos TXT;
+- consumir exclusivamente o Layout Final;
+- agrupar os registros por destino;
+- criar um arquivo TXT para cada destino;
+- gravar cada linha no formato operacional esperado;
+- exibir a quantidade de arquivos gerados;
+- exibir o nome dos arquivos gerados;
+- exibir a quantidade de linhas de cada arquivo;
+- exibir o conteudo completo do primeiro arquivo gerado para conferencia.
+
+### Arquivos criados ou alterados
+
+- `EP_Platform/exportadores/__init__.py`
+- `EP_Platform/exportadores/exportador_txt.py`
+- `EP_Platform/main.py`
+- `Docs/Sprints_EP_Platform.md`
+
+### Estrutura dos arquivos TXT
+
+Nome do arquivo:
+
+```text
+Remanejar Filial <Destino>.txt
+```
+
+Cada linha contem exatamente:
+
+```text
+Origem;Produto;Quantidade
+```
+
+Os arquivos nao possuem cabecalho.
+
+### Regras implementadas
+
+- o exportador recebe apenas registros do Layout Final;
+- os registros sao agrupados por `Destino`;
+- cada destino gera exatamente um arquivo TXT;
+- o destino nao e escrito dentro do arquivo;
+- a descricao nao e exportada;
+- cada linha e gravada como `Origem;Produto;Quantidade`;
+- os arquivos sao gravados sem cabecalho;
+- a exportacao preserva a ordem recebida do Layout Final dentro de cada destino.
+
+### Restricoes preservadas
+
+O exportador TXT nao acessa:
+
+- Motor de Distribuicao;
+- `Sugestao_Remanejamento`;
+- Calculadora de Capacidade;
+- Preparador do Motor.
+
+### Limitacoes
+
+- Nao cria interface de selecao de pasta.
+- Nao implementa logs persistentes.
+- Nao altera os dados que recebe do Layout Final.
+
+### Proximos passos
+
+- integrar a escolha do local de exportacao na interface da EP Platform;
+- registrar a execucao e os arquivos gerados em logs;
+- validar o consumo dos TXT pelo processo operacional definitivo.

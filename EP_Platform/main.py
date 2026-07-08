@@ -1,3 +1,4 @@
+import tempfile
 from pathlib import Path
 
 from EP_Platform.calculadoras.calculadora_capacidade import (
@@ -7,6 +8,7 @@ from EP_Platform.calculadoras.calculadora_capacidade import (
     calcular_capacidade_estoque,
     resumir_status_absorcao,
 )
+from EP_Platform.exportadores.exportador_txt import exportar_layout_final_txt
 from EP_Platform.geradores.gerador_layout_final import gerar_layout_final
 from EP_Platform.geradores.gerador_sugestao import gerar_sugestao_remanejamento
 from EP_Platform.importadores.importador_estoque import importar_estoque
@@ -421,6 +423,65 @@ def executar_sprint_5(
     return len(layout_final)
 
 
+def executar_sprint_6(
+    caminho_estoque: Path,
+    caminho_excesso: Path,
+    dias_alvo: float = 90,
+) -> int:
+    estoque_importado = importar_estoque(caminho_estoque)
+    excesso_importado = importar_excesso(caminho_excesso)
+
+    estoque_limpo = limpar_estoque(estoque_importado.linhas)
+    excesso_limpo = limpar_excesso(excesso_importado.linhas)
+
+    validacao_estoque = validar_estoque(estoque_limpo)
+    validacao_excesso = validar_excesso(excesso_limpo)
+    validacao = consolidar_validacoes(validacao_estoque, validacao_excesso)
+
+    if not validacao.valido:
+        print("Validacoes: ERRO")
+        for erro in validacao.erros:
+            print(f"- {erro}")
+        raise SystemExit(1)
+
+    estoque_normalizado = normalizar_estoque(estoque_limpo)
+    excesso_normalizado = normalizar_excesso(excesso_limpo)
+    estoque_calculado = calcular_capacidade_estoque(estoque_normalizado, dias_alvo)
+    preparacoes = preparar_dados_motor(estoque_calculado, excesso_normalizado)
+    resultados_primeira = executar_primeira_rodada(preparacoes)
+    resultados_segunda = executar_segunda_rodada(resultados_primeira)
+    saldos_remanescentes = registrar_saldos_remanescentes(resultados_segunda)
+    sugestoes = gerar_sugestao_remanejamento(
+        resultados_segunda,
+        saldos_remanescentes,
+    )
+    layout_final = gerar_layout_final(sugestoes)
+    pasta_saida = Path(
+        tempfile.mkdtemp(prefix="remanejamento_estoque_sprint6_")
+    )
+    arquivos = exportar_layout_final_txt(layout_final, pasta_saida)
+
+    print(f"Pasta de exportacao: {pasta_saida}")
+    print(f"Quantidade de arquivos TXT gerados: {len(arquivos)}")
+    print("Arquivos gerados:")
+
+    for arquivo in arquivos:
+        print(f"{arquivo.caminho.name}: {arquivo.quantidade_linhas} linhas")
+
+    if arquivos:
+        primeiro_arquivo = arquivos[0]
+        print(f"Conteudo completo do primeiro arquivo gerado:")
+        print(primeiro_arquivo.caminho.name)
+
+        for linha in primeiro_arquivo.linhas:
+            print(linha)
+
+    for aviso in validacao.avisos:
+        print(f"Aviso: {aviso}")
+
+    return len(arquivos)
+
+
 def _formatar_valor_opcional(valor: float | None) -> str:
     if valor is None:
         return "nao aplicavel"
@@ -433,7 +494,7 @@ def main() -> None:
     caminho_estoque = raiz_projeto / "Layout" / "Layout_Estoque.xls"
     caminho_excesso = raiz_projeto / "Layout" / "Layout_Excesso.xls"
 
-    executar_sprint_5(caminho_estoque, caminho_excesso)
+    executar_sprint_6(caminho_estoque, caminho_excesso)
 
 
 if __name__ == "__main__":
