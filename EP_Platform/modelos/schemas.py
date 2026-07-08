@@ -112,3 +112,20 @@ class ResultadoPrimeiraRodada:
     saldo_inicial: float
     saldo_restante: float
     envios: list[EnvioPrimeiraRodada]
+
+
+@dataclass(frozen=True)
+class EnvioSegundaRodada:
+    produto: str
+    origem: str
+    destino: str
+    quantidade_enviada: float
+    saldo_restante: float
+
+
+@dataclass(frozen=True)
+class ResultadoSegundaRodada:
+    resultado_primeira_rodada: ResultadoPrimeiraRodada
+    saldo_apos_primeira_rodada: float
+    saldo_restante: float
+    envios: list[EnvioSegundaRodada]

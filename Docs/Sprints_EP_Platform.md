@@ -343,3 +343,82 @@ Quando nao houver envio para um produto na primeira rodada, a execucao informa q
 - Implementar a segunda rodada do motor de distribuicao.
 - Integrar as duas rodadas em uma estrutura unica de resultado.
 - Gerar a sugestao detalhada somente apos o motor completo estar validado.
+
+## Sprint 3B - Segunda Rodada do Motor de Distribuicao
+
+### Objetivo
+
+Implementar somente a segunda rodada do algoritmo de distribuicao, utilizando o saldo restante apos a primeira rodada.
+
+A Sprint 3B continua registrando distribuicoes em memoria. Ela nao gera remanejamento final, nao exporta TXT, nao arredonda quantidades, nao atualiza estoque de destino e nao recalcula capacidade.
+
+### Escopo
+
+O escopo da Sprint 3B contempla:
+
+- executar a segunda rodada apos a primeira rodada;
+- usar o saldo restante gerado pela primeira rodada;
+- considerar somente destinos aptos com estoque atual maior que zero;
+- respeitar a ordenacao preparada anteriormente: produto crescente e `MediaF` decrescente;
+- enviar para cada destino o menor valor entre saldo restante e capacidade disponivel;
+- reduzir o saldo restante apos cada envio;
+- registrar cada envio da segunda rodada em memoria;
+- apresentar no terminal o resumo da segunda rodada.
+
+### Arquivos criados ou alterados
+
+- `EP_Platform/motores/motor_segunda_rodada.py`
+- `EP_Platform/modelos/schemas.py`
+- `EP_Platform/main.py`
+- `Docs/Sprints_EP_Platform.md`
+
+### Regras implementadas
+
+Para cada produto processado pela primeira rodada:
+
+1. usa o saldo restante apos a primeira rodada;
+2. percorre os destinos aptos ja preparados;
+3. considera somente destinos com `QtEstoqueComercial > 0`;
+4. calcula a quantidade a enviar:
+
+```text
+quantidadeEnviar = min(saldoRestante, capacidade)
+```
+
+5. registra o envio em memoria quando a quantidade calculada for maior que zero;
+6. reduz o saldo restante;
+7. interrompe a rodada quando o saldo restante chega a zero.
+
+### Resultado esperado em terminal
+
+A execucao de `EP_Platform/main.py` deve apresentar, para cada produto:
+
+- produto;
+- saldo apos primeira rodada;
+- destino atendido na segunda rodada;
+- quantidade enviada na segunda rodada;
+- saldo restante apos o envio.
+
+Quando nao houver envio para um produto na segunda rodada, a execucao informa que nenhum envio foi realizado.
+
+### Limitacoes
+
+- Nao gera `Sugestao_Remanejamento`.
+- Nao gera `Final - Importar`.
+- Nao exporta TXT.
+- Nao altera estoque de origem.
+- Nao altera estoque de destino.
+- Nao recalcula capacidade.
+- Nao arredonda quantidade enviada no motor.
+
+### Regra de decimais
+
+O motor mantem valores decimais quando a capacidade disponivel do destino ou o saldo restante forem decimais.
+
+O arredondamento sera realizado apenas em etapa futura de Remanejamento Final, conforme a regra documentada da migracao.
+
+### Proximos passos
+
+- Integrar os resultados das duas rodadas em uma estrutura unica para geracao da sugestao.
+- Implementar a `Sugestao_Remanejamento` em sprint futura.
+- Manter o arredondamento fora do motor de distribuicao.
