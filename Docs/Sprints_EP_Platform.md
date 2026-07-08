@@ -189,3 +189,73 @@ A execucao de `EP_Platform/main.py` deve apresentar:
 - Criar testes automatizados para a calculadora de capacidade.
 - Preparar o motor de distribuicao em sprint futura usando os registros de estoque calculados.
 - Preservar, na primeira versao do motor, a regra de nao atualizar estoque do destino durante a distribuicao.
+
+## Sprint 2B - Preparacao de Dados para o Motor
+
+### Objetivo
+
+Preparar a estrutura de dados que sera usada pelo Motor de Distribuicao na Sprint 3.
+
+A Sprint 2B organiza os dados importados, normalizados e calculados, deixando disponiveis as informacoes necessarias para o algoritmo futuro. Esta sprint nao executa distribuicao, nao gera sugestao, nao gera remanejamento final e nao exporta TXT.
+
+### Escopo
+
+O escopo da Sprint 2B contempla:
+
+- agrupar registros de estoque por produto;
+- identificar a filial de origem informada no arquivo de excesso;
+- localizar o registro correspondente da origem no estoque;
+- localizar todas as filiais que possuem o mesmo produto;
+- excluir a filial de origem da lista de destinos;
+- selecionar apenas filiais com `StatusAbsorcao = Pode Absorver`;
+- manter disponivel a capacidade calculada de cada destino;
+- ordenar os destinos por produto crescente e `MediaF` decrescente;
+- apresentar no terminal um resumo por produto/excesso.
+
+### Arquivos criados ou alterados
+
+- `EP_Platform/preparadores/__init__.py`
+- `EP_Platform/preparadores/preparador_motor.py`
+- `EP_Platform/modelos/schemas.py`
+- `EP_Platform/main.py`
+- `Docs/Sprints_EP_Platform.md`
+
+### Regras implementadas
+
+Para cada linha de excesso normalizada, o preparador:
+
+1. usa o codigo do produto para buscar os registros de estoque do mesmo produto;
+2. identifica a filial de origem informada no excesso;
+3. procura, dentro do estoque calculado, o registro da origem para o produto;
+4. monta a lista de possiveis destinos com o mesmo produto;
+5. remove a filial de origem da lista de destinos;
+6. mantem apenas destinos com status `Pode Absorver`;
+7. preserva a capacidade ja calculada na Sprint 2A;
+8. ordena os destinos seguindo a regra atual do VBA: produto crescente e maior `MediaF` primeiro.
+
+### Resultado esperado em terminal
+
+A execucao de `EP_Platform/main.py` deve apresentar, para cada produto informado no excesso:
+
+- produto;
+- loja de origem;
+- quantidade em excesso;
+- quantidade de destinos aptos encontrados;
+- capacidade total disponivel.
+
+### Limitacoes
+
+- Nao calcula quantidade a enviar.
+- Nao reduz saldo de excesso.
+- Nao altera estoque de origem.
+- Nao altera estoque de destino.
+- Nao executa rodadas de distribuicao.
+- Nao gera `Sugestao_Remanejamento`.
+- Nao gera `Final - Importar`.
+- Nao exporta TXT.
+
+### Proximos passos
+
+- Implementar o Motor de Distribuicao na Sprint 3.
+- Usar a estrutura preparada nesta sprint para aplicar as rodadas do algoritmo.
+- Preservar na Sprint 3 a regra de nao atualizar estoque de destino durante a distribuicao inicial compativel com o VBA.

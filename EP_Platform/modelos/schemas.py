@@ -66,3 +66,32 @@ class RegistroExcesso:
     descricao: str
     qtde_excesso: float
     linha_origem: int
+
+
+@dataclass(frozen=True)
+class DestinoApto:
+    registro: RegistroEstoqueCalculado
+
+    @property
+    def filial(self) -> str:
+        return self.registro.estoque.cod_filial
+
+    @property
+    def media_f(self) -> float:
+        return self.registro.estoque.media_f
+
+    @property
+    def capacidade(self) -> float:
+        return self.registro.capacidade
+
+
+@dataclass(frozen=True)
+class PreparacaoMotorProduto:
+    excesso: RegistroExcesso
+    registro_origem: RegistroEstoqueCalculado | None
+    registros_produto: list[RegistroEstoqueCalculado]
+    destinos_aptos: list[DestinoApto]
+
+    @property
+    def capacidade_total_disponivel(self) -> float:
+        return sum(destino.capacidade for destino in self.destinos_aptos)

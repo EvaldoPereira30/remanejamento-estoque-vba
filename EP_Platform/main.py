@@ -15,6 +15,7 @@ from EP_Platform.normalizadores.normalizador_dados import (
     normalizar_estoque,
     normalizar_excesso,
 )
+from EP_Platform.preparadores.preparador_motor import preparar_dados_motor
 from EP_Platform.validadores.validador_layout import (
     consolidar_validacoes,
     validar_estoque,
@@ -86,11 +87,55 @@ def executar_sprint_2a(
     return len(estoque_calculado), resumo
 
 
+def executar_sprint_2b(
+    caminho_estoque: Path,
+    caminho_excesso: Path,
+    dias_alvo: float = 90,
+) -> int:
+    estoque_importado = importar_estoque(caminho_estoque)
+    excesso_importado = importar_excesso(caminho_excesso)
+
+    estoque_limpo = limpar_estoque(estoque_importado.linhas)
+    excesso_limpo = limpar_excesso(excesso_importado.linhas)
+
+    validacao_estoque = validar_estoque(estoque_limpo)
+    validacao_excesso = validar_excesso(excesso_limpo)
+    validacao = consolidar_validacoes(validacao_estoque, validacao_excesso)
+
+    if not validacao.valido:
+        print("Validacoes: ERRO")
+        for erro in validacao.erros:
+            print(f"- {erro}")
+        raise SystemExit(1)
+
+    estoque_normalizado = normalizar_estoque(estoque_limpo)
+    excesso_normalizado = normalizar_excesso(excesso_limpo)
+    estoque_calculado = calcular_capacidade_estoque(estoque_normalizado, dias_alvo)
+    preparacoes = preparar_dados_motor(estoque_calculado, excesso_normalizado)
+
+    for preparacao in preparacoes:
+        print(f"Produto: {preparacao.excesso.produto}")
+        print(f"Origem: Loja {preparacao.excesso.origem}")
+        print(f"Quantidade em excesso: {preparacao.excesso.qtde_excesso:g}")
+        print(f"Destinos aptos encontrados: {len(preparacao.destinos_aptos)}")
+        print(
+            "Capacidade total disponível: "
+            f"{preparacao.capacidade_total_disponivel:.2f}"
+        )
+        print()
+
+    for aviso in validacao.avisos:
+        print(f"Aviso: {aviso}")
+
+    return len(preparacoes)
+
+
 def main() -> None:
     raiz_projeto = Path(__file__).resolve().parent.parent
     caminho_estoque = raiz_projeto / "Layout" / "Layout_Estoque.xls"
+    caminho_excesso = raiz_projeto / "Layout" / "Layout_Excesso.xls"
 
-    executar_sprint_2a(caminho_estoque)
+    executar_sprint_2b(caminho_estoque, caminho_excesso)
 
 
 if __name__ == "__main__":
