@@ -259,3 +259,87 @@ A execucao de `EP_Platform/main.py` deve apresentar, para cada produto informado
 - Implementar o Motor de Distribuicao na Sprint 3.
 - Usar a estrutura preparada nesta sprint para aplicar as rodadas do algoritmo.
 - Preservar na Sprint 3 a regra de nao atualizar estoque de destino durante a distribuicao inicial compativel com o VBA.
+
+## Sprint 3A - Primeira Rodada do Motor de Distribuicao
+
+### Objetivo
+
+Implementar somente a primeira rodada do algoritmo de distribuicao, usando os dados preparados pela Sprint 2B.
+
+A Sprint 3A registra distribuicoes em memoria para destinos aptos com estoque atual zerado. Esta sprint nao implementa segunda rodada, nao gera `Sugestao_Remanejamento` completa, nao gera remanejamento final e nao exporta TXT.
+
+### Escopo
+
+O escopo da Sprint 3A contempla:
+
+- criar o modulo inicial do motor de distribuicao;
+- receber a estrutura preparada pela Sprint 2B;
+- calcular o saldo inicial do produto a partir do excesso e do estoque disponivel na origem;
+- percorrer apenas destinos aptos;
+- selecionar somente destinos cujo estoque atual seja igual a zero;
+- enviar no maximo 1 unidade por destino;
+- limitar o envio pelo saldo restante;
+- limitar o envio pela capacidade disponivel;
+- reduzir o saldo restante em memoria apos cada envio;
+- registrar cada envio em memoria;
+- apresentar no terminal o resumo dos envios da primeira rodada.
+
+### Arquivos criados ou alterados
+
+- `EP_Platform/motores/__init__.py`
+- `EP_Platform/motores/motor_primeira_rodada.py`
+- `EP_Platform/modelos/schemas.py`
+- `EP_Platform/main.py`
+- `Docs/Sprints_EP_Platform.md`
+
+### Regras implementadas
+
+Para cada produto preparado:
+
+1. calcula o saldo inicial:
+
+```text
+saldoInicial = min(qtdExcesso, estoqueOrigem)
+```
+
+2. se a origem nao for encontrada no estoque ou nao possuir estoque disponivel, o saldo inicial e zero;
+3. percorre os destinos aptos ja preparados;
+4. considera somente destinos com `QtEstoqueComercial = 0`;
+5. calcula a quantidade a enviar:
+
+```text
+quantidadeEnviar = min(saldoRestante, capacidade, 1)
+```
+
+6. se a quantidade calculada for maior que zero, registra o envio em memoria;
+7. reduz o saldo restante;
+8. interrompe a rodada quando o saldo restante chega a zero.
+
+### Resultado esperado em terminal
+
+A execucao de `EP_Platform/main.py` deve apresentar, para cada produto:
+
+- produto;
+- saldo inicial;
+- destino atendido na primeira rodada;
+- quantidade enviada;
+- saldo restante apos o envio.
+
+Quando nao houver envio para um produto na primeira rodada, a execucao informa que nenhum envio foi realizado.
+
+### Limitacoes
+
+- Nao executa segunda rodada.
+- Nao atende destinos com estoque atual maior que zero.
+- Nao altera estoque de origem.
+- Nao altera estoque de destino.
+- Nao recalcula capacidade.
+- Nao gera `Sugestao_Remanejamento` completa.
+- Nao gera `Final - Importar`.
+- Nao exporta TXT.
+
+### Proximos passos
+
+- Implementar a segunda rodada do motor de distribuicao.
+- Integrar as duas rodadas em uma estrutura unica de resultado.
+- Gerar a sugestao detalhada somente apos o motor completo estar validado.

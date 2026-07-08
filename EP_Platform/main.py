@@ -15,6 +15,7 @@ from EP_Platform.normalizadores.normalizador_dados import (
     normalizar_estoque,
     normalizar_excesso,
 )
+from EP_Platform.motores.motor_primeira_rodada import executar_primeira_rodada
 from EP_Platform.preparadores.preparador_motor import preparar_dados_motor
 from EP_Platform.validadores.validador_layout import (
     consolidar_validacoes,
@@ -130,12 +131,62 @@ def executar_sprint_2b(
     return len(preparacoes)
 
 
+def executar_sprint_3a(
+    caminho_estoque: Path,
+    caminho_excesso: Path,
+    dias_alvo: float = 90,
+) -> int:
+    estoque_importado = importar_estoque(caminho_estoque)
+    excesso_importado = importar_excesso(caminho_excesso)
+
+    estoque_limpo = limpar_estoque(estoque_importado.linhas)
+    excesso_limpo = limpar_excesso(excesso_importado.linhas)
+
+    validacao_estoque = validar_estoque(estoque_limpo)
+    validacao_excesso = validar_excesso(excesso_limpo)
+    validacao = consolidar_validacoes(validacao_estoque, validacao_excesso)
+
+    if not validacao.valido:
+        print("Validacoes: ERRO")
+        for erro in validacao.erros:
+            print(f"- {erro}")
+        raise SystemExit(1)
+
+    estoque_normalizado = normalizar_estoque(estoque_limpo)
+    excesso_normalizado = normalizar_excesso(excesso_limpo)
+    estoque_calculado = calcular_capacidade_estoque(estoque_normalizado, dias_alvo)
+    preparacoes = preparar_dados_motor(estoque_calculado, excesso_normalizado)
+    resultados = executar_primeira_rodada(preparacoes)
+
+    total_envios = 0
+
+    for resultado in resultados:
+        print(f"Produto {resultado.preparacao.excesso.produto}")
+        print(f"Saldo inicial: {resultado.saldo_inicial:g}")
+
+        if not resultado.envios:
+            print("Nenhum envio na primeira rodada")
+
+        for envio in resultado.envios:
+            total_envios += 1
+            print(f"Destino {envio.destino}")
+            print(f"Quantidade enviada: {envio.quantidade_enviada:g}")
+            print(f"Saldo restante: {envio.saldo_restante:g}")
+
+        print()
+
+    for aviso in validacao.avisos:
+        print(f"Aviso: {aviso}")
+
+    return total_envios
+
+
 def main() -> None:
     raiz_projeto = Path(__file__).resolve().parent.parent
     caminho_estoque = raiz_projeto / "Layout" / "Layout_Estoque.xls"
     caminho_excesso = raiz_projeto / "Layout" / "Layout_Excesso.xls"
 
-    executar_sprint_2b(caminho_estoque, caminho_excesso)
+    executar_sprint_3a(caminho_estoque, caminho_excesso)
 
 
 if __name__ == "__main__":

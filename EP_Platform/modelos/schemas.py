@@ -95,3 +95,20 @@ class PreparacaoMotorProduto:
     @property
     def capacidade_total_disponivel(self) -> float:
         return sum(destino.capacidade for destino in self.destinos_aptos)
+
+
+@dataclass(frozen=True)
+class EnvioPrimeiraRodada:
+    produto: str
+    origem: str
+    destino: str
+    quantidade_enviada: float
+    saldo_restante: float
+
+
+@dataclass(frozen=True)
+class ResultadoPrimeiraRodada:
+    preparacao: PreparacaoMotorProduto
+    saldo_inicial: float
+    saldo_restante: float
+    envios: list[EnvioPrimeiraRodada]
