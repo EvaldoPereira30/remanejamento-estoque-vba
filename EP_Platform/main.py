@@ -17,6 +17,7 @@ from EP_Platform.normalizadores.normalizador_dados import (
 )
 from EP_Platform.motores.motor_primeira_rodada import executar_primeira_rodada
 from EP_Platform.motores.motor_segunda_rodada import executar_segunda_rodada
+from EP_Platform.motores.tratador_saldo_restante import registrar_saldos_remanescentes
 from EP_Platform.preparadores.preparador_motor import preparar_dados_motor
 from EP_Platform.validadores.validador_layout import (
     consolidar_validacoes,
@@ -240,12 +241,70 @@ def executar_sprint_3b(
     return total_envios
 
 
+def executar_sprint_3c(
+    caminho_estoque: Path,
+    caminho_excesso: Path,
+    dias_alvo: float = 90,
+) -> tuple[int, int]:
+    estoque_importado = importar_estoque(caminho_estoque)
+    excesso_importado = importar_excesso(caminho_excesso)
+
+    estoque_limpo = limpar_estoque(estoque_importado.linhas)
+    excesso_limpo = limpar_excesso(excesso_importado.linhas)
+
+    validacao_estoque = validar_estoque(estoque_limpo)
+    validacao_excesso = validar_excesso(excesso_limpo)
+    validacao = consolidar_validacoes(validacao_estoque, validacao_excesso)
+
+    if not validacao.valido:
+        print("Validacoes: ERRO")
+        for erro in validacao.erros:
+            print(f"- {erro}")
+        raise SystemExit(1)
+
+    estoque_normalizado = normalizar_estoque(estoque_limpo)
+    excesso_normalizado = normalizar_excesso(excesso_limpo)
+    estoque_calculado = calcular_capacidade_estoque(estoque_normalizado, dias_alvo)
+    preparacoes = preparar_dados_motor(estoque_calculado, excesso_normalizado)
+    resultados_primeira = executar_primeira_rodada(preparacoes)
+    resultados_segunda = executar_segunda_rodada(resultados_primeira)
+    saldos_remanescentes = registrar_saldos_remanescentes(resultados_segunda)
+
+    produtos_totalmente_distribuidos = (
+        len(resultados_segunda) - len(saldos_remanescentes)
+    )
+
+    print(
+        "Quantidade de produtos totalmente distribuídos: "
+        f"{produtos_totalmente_distribuidos}"
+    )
+    print(
+        "Quantidade de produtos com saldo remanescente: "
+        f"{len(saldos_remanescentes)}"
+    )
+
+    if saldos_remanescentes:
+        print("Lista dos produtos registrados como Sem loja destino:")
+
+    for saldo in saldos_remanescentes:
+        print(f"Produto {saldo.produto}")
+        print(f"Saldo restante: {saldo.saldo_restante:g}")
+        print("Status:")
+        print(saldo.destino)
+        print()
+
+    for aviso in validacao.avisos:
+        print(f"Aviso: {aviso}")
+
+    return produtos_totalmente_distribuidos, len(saldos_remanescentes)
+
+
 def main() -> None:
     raiz_projeto = Path(__file__).resolve().parent.parent
     caminho_estoque = raiz_projeto / "Layout" / "Layout_Estoque.xls"
     caminho_excesso = raiz_projeto / "Layout" / "Layout_Excesso.xls"
 
-    executar_sprint_3b(caminho_estoque, caminho_excesso)
+    executar_sprint_3c(caminho_estoque, caminho_excesso)
 
 
 if __name__ == "__main__":

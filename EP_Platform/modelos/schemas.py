@@ -129,3 +129,16 @@ class ResultadoSegundaRodada:
     saldo_apos_primeira_rodada: float
     saldo_restante: float
     envios: list[EnvioSegundaRodada]
+
+
+@dataclass(frozen=True)
+class SaldoRemanescente:
+    destino: str
+    produto: str
+    origem: str
+    quantidade_excesso_original: float
+    saldo_restante: float
+    quantidade_sugerida: float
+    dias_destino: float | None
+    capacidade: float | None
+    dias_apos: float | None

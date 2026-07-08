@@ -422,3 +422,76 @@ O arredondamento sera realizado apenas em etapa futura de Remanejamento Final, c
 - Integrar os resultados das duas rodadas em uma estrutura unica para geracao da sugestao.
 - Implementar a `Sugestao_Remanejamento` em sprint futura.
 - Manter o arredondamento fora do motor de distribuicao.
+
+## Sprint 3C - Registro de Saldo Remanescente
+
+### Objetivo
+
+Registrar corretamente os produtos cujo saldo nao pode ser totalmente distribuido apos a primeira e a segunda rodada do motor.
+
+A Sprint 3C nao distribui nenhuma unidade adicional. Ela apenas registra o saldo remanescente como pendencia operacional para auditoria, rastreabilidade e futura geracao da `Sugestao_Remanejamento`.
+
+### Escopo
+
+O escopo da Sprint 3C contempla:
+
+- receber os resultados finais da segunda rodada;
+- identificar produtos com saldo restante maior que zero;
+- registrar exatamente um item de pendencia por produto com saldo remanescente;
+- marcar o destino como `Sem loja destino`;
+- preservar o produto, origem, quantidade original em excesso e saldo restante;
+- manter quantidade sugerida como zero;
+- manter dias do destino, capacidade e dias apos como nao aplicaveis;
+- apresentar no terminal um resumo dos produtos com saldo remanescente.
+
+### Arquivos criados ou alterados
+
+- `EP_Platform/motores/tratador_saldo_restante.py`
+- `EP_Platform/modelos/schemas.py`
+- `EP_Platform/main.py`
+- `Docs/Sprints_EP_Platform.md`
+
+### Regras implementadas
+
+Apos finalizar a primeira e a segunda rodada:
+
+1. para cada produto, verifica o saldo final do motor;
+2. se o saldo restante for maior que zero, registra uma pendencia;
+3. se o saldo restante for zero, nao registra pendencia;
+4. o registro de pendencia possui:
+   - destino: `Sem loja destino`;
+   - produto;
+   - origem;
+   - quantidade em excesso original;
+   - saldo restante;
+   - quantidade sugerida: `0`;
+   - dias do destino: nao aplicavel;
+   - capacidade: nao aplicavel;
+   - dias apos: nao aplicavel.
+
+### Resultado esperado em terminal
+
+A execucao de `EP_Platform/main.py` deve apresentar:
+
+- quantidade de produtos totalmente distribuidos;
+- quantidade de produtos com saldo remanescente;
+- lista dos produtos registrados como `Sem loja destino`.
+
+### Limitacoes
+
+- Nao implementa Remanejamento Final.
+- Nao exporta TXT.
+- Nao arredonda quantidades.
+- Nao altera distribuicoes da primeira rodada.
+- Nao altera distribuicoes da segunda rodada.
+- Nao altera estoque de origem.
+- Nao altera estoque de destino.
+- Nao recalcula capacidade.
+
+### Regras para etapas futuras
+
+Os registros `Sem loja destino` nao participam do Remanejamento Final.
+
+Os registros `Sem loja destino` nao sao exportados no TXT.
+
+Esses registros servem apenas para auditoria, rastreabilidade e futura composicao da `Sugestao_Remanejamento`.
